@@ -13,6 +13,10 @@ class BMTest extends TestDriver {
   /** The display name of the test suite. */
   private static final String TEST_NAME = "buffer manager tests";
 
+  // from announcement on canvas
+  public static final boolean UNPIN_CLEAN = false;
+  public static final boolean UNPIN_DIRTY = true;
+
   /**
    * Test application entry point; runs all tests.
    */
@@ -25,13 +29,13 @@ class BMTest extends TestDriver {
     // run all the test cases
     System.out.println("\n" + "Running " + TEST_NAME + "...");
     boolean status = PASS;
-    status &= bmt.test1();
+//    status &= bmt.test1();
     bmt = new BMTest();
-    bmt.create_minibase();
+    bmt.create_minibase(); // makes 0-8 pages with no pin count
     status &= bmt.test2();
     bmt = new BMTest();
     bmt.create_minibase();
-    status &= bmt.test3();
+//    status &= bmt.test3();
 
     // display the final results
     System.out.println();
@@ -55,17 +59,17 @@ class BMTest extends TestDriver {
     // will have to be written during this test
     boolean status = PASS;
     System.out.println("Buffer size: "+ Minibase.BufferManager.getNumBuffers());
-    int numPages = Minibase.BufferManager.getNumUnpinned() + 10;
-    System.out.println("Num pages: "+numPages);
+    int numBufPages = Minibase.BufferManager.getNumUnpinned() + 10;
+    System.out.println("Num pages: "+numBufPages);
     Page pg = new Page();
     PageId pid;
     PageId lastPid;
     PageId firstPid = new PageId();
     System.out.print("  - Allocate a bunch of new pages\n");
     try {
-      firstPid = Minibase.BufferManager.newPage(pg, numPages);
+      firstPid = Minibase.BufferManager.newPage(pg, numBufPages);
     } catch (Exception e) {
-      System.err.print("*** Could not allocate " + numPages);
+      System.err.print("*** Could not allocate " + numBufPages);
       System.err.print(" new pages in the database.\n");
       e.printStackTrace();
       return false;
@@ -84,7 +88,7 @@ class BMTest extends TestDriver {
     pid = new PageId();
     lastPid = new PageId();
 
-    for (pid.pid = firstPid.pid, lastPid.pid = pid.pid + numPages; status == PASS
+    for (pid.pid = firstPid.pid, lastPid.pid = pid.pid + numBufPages; status == PASS
         && pid.pid < lastPid.pid; pid.pid = pid.pid + 1) {
         // System.out.println("page id: "+pid.pid);
       try {
@@ -172,9 +176,10 @@ class BMTest extends TestDriver {
       }
     }
 
-    if (status == PASS)
+    if (status == PASS){
       System.out.print("  Test 1 completed successfully.\n");
-
+      Minibase.BufferManager.printBhrAndRefCount();
+    }
     return status;
 
   } // protected boolean test1 ()
@@ -189,7 +194,8 @@ class BMTest extends TestDriver {
 
     // we choose this number to ensure that pinning
     // this number of buffers should fail
-    int numPages = Minibase.BufferManager.getNumUnpinned() + 1;
+    int numBufPages = Minibase.BufferManager.getNumUnpinned() + 1;
+    int numBufs = Minibase.BufferManager.getNumBuffers();
     Page pg = new Page();
     PageId pid, lastPid;
     PageId firstPid = new PageId();
@@ -197,9 +203,9 @@ class BMTest extends TestDriver {
 
     System.out.print("  - Try to pin more pages than there are frames\n");
     try {
-      firstPid = Minibase.BufferManager.newPage(pg, numPages);
+      firstPid = Minibase.BufferManager.newPage(pg, numBufPages);
     } catch (Exception e) {
-      System.err.print("*** Could not allocate " + numPages);
+      System.err.print("*** Could not allocate " + numBufPages);
       System.err.print(" new pages in the database.\n");
       e.printStackTrace();
       return false;
@@ -209,7 +215,7 @@ class BMTest extends TestDriver {
     lastPid = new PageId();
 
     // first pin enough pages that there is no more room
-    for (pid.pid = firstPid.pid + 1, lastPid.pid = firstPid.pid + numPages - 1; status == PASS
+    for (pid.pid = firstPid.pid + 1, lastPid.pid = firstPid.pid + numBufPages - 1; status == PASS
         && pid.pid < lastPid.pid; pid.pid = pid.pid + 1) {
 
       try {
@@ -317,9 +323,10 @@ class BMTest extends TestDriver {
       }
     }
 
-    if (status == PASS)
+    if (status == PASS){
       System.out.print("  Test 2 completed successfully.\n");
-
+      Minibase.BufferManager.printBhrAndRefCount();
+      }
     return status;
 
   } // protected boolean test2 ()
@@ -333,17 +340,17 @@ class BMTest extends TestDriver {
         + "of the buffer manager\n");
 
     int index;
-    int numPages = BUF_SIZE + 10;
+    int numBufPages = BUF_SIZE + 10;
 
     Page pg = new Page();
     PageId pid = new PageId();
-    PageId[] pids = new PageId[numPages];
+    PageId[] pids = new PageId[numBufPages];
     boolean status = PASS;
 
     System.out.print("  - Allocate and dirty some new pages, one at "
         + "a time, and leave some pinned\n");
 
-    for (index = 0; status == PASS && index < numPages; ++index) {
+    for (index = 0; status == PASS && index < numBufPages; ++index) {
       try {
         pid = Minibase.BufferManager.newPage(pg, 1);
       } catch (Exception e) {
@@ -384,7 +391,7 @@ class BMTest extends TestDriver {
     if (status == PASS) {
       System.out.print("  - Read the pages\n");
 
-      for (index = 0; status == PASS && index < numPages; ++index) {
+      for (index = 0; status == PASS && index < numBufPages; ++index) {
         pid = pids[index];
         try {
           Minibase.BufferManager.pinPage(pid, pg, PIN_DISKIO);
@@ -429,8 +436,10 @@ class BMTest extends TestDriver {
       }
     }
 
-    if (status == PASS)
+    if (status == PASS){
       System.out.print("  Test 3 completed successfully.\n");
+      Minibase.BufferManager.printBhrAndRefCount();
+      }
 
     return status;
 

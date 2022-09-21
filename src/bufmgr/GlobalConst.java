@@ -1,11 +1,11 @@
-package global;
+package bufmgr;
 
 public interface GlobalConst {
 
   public static final int MINIBASE_MAXARRSIZE = 50;
 
   // Here you need to change the buffer size.
-  public static final int NUMBUF = 50;
+  public static final int NUMBUF = 27;
 
   /** Size of page. */
   public static final int MINIBASE_PAGESIZE = 1024;           // in bytes

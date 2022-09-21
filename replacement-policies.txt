@@ -1,6 +1,6 @@
 Policy (buffer size)
 ---------------------
-Fifo (27)
-Random (32)
+Fifo (27,32)
+Random (27,32)
 
 implement policy and buffer hit code in BufMgr

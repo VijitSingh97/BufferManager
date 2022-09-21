@@ -17,8 +17,12 @@ bufmgr:
 
 
 bmtest:
-	$(JAVAC) $(SRCPATH)/tests/*.java
+	$(JAVAC)  $(SRCPATH)/tests/BMTest.java
 	$(JAVA) tests.BMTest
+
+bhrtest:
+	$(JAVAC)  $(SRCPATH)/tests/BHRTest.java
+	$(JAVA) tests.BHRTest
 
 clean: clean_classes clean_backups clean_temps
 	rm -rf *.minibase $(BINPATH)/*

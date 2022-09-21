@@ -42,8 +42,14 @@ public class BufMgr implements GlobalConst {
             modify the print method with variables you have used
     */     
 //-------------------------------------------------------------
-
-
+  protected double totPageHits;
+  protected double totPageRequests;
+  protected double pageLoadHits;
+  protected double pageLoadRequests;
+  protected double uniquePageLoads;
+  protected double pageFaults;
+  protected double aggregateBHR;
+  protected double pageLoadBHR;
 
   /**
    * Constructs a buffer mamanger with the given settings.
@@ -64,7 +70,7 @@ public class BufMgr implements GlobalConst {
       
       //initializing page map and replacer here. 
       pagemap = new HashMap<Integer, FrameDesc>(numbufs);
-      replacer = new Policy(this);   // change Policy to replacement class name
+      replacer = new FifoPolicy(this);   // change Policy to replacement class name
   }
 
   /**
@@ -126,7 +132,7 @@ public class BufMgr implements GlobalConst {
           tempfd.pageno.pid = INVALID_PAGEID;
           tempfd.pincnt = 0;
           tempfd.dirty = false;
-          tempfd.state = Policy.AVAILABLE;
+          tempfd.state = FifoPolicy.AVAILABLE;
           replacer.freePage(tempfd);
       }
       //deallocate the page from disk 
@@ -157,7 +163,7 @@ public class BufMgr implements GlobalConst {
           {
         	  //else the page is in the pool and has not been pinned so incrementing the pincount and setting Policy status to pinned
         	  tempfd.pincnt++;
-        	  tempfd.state = Policy.PINNED;
+        	  tempfd.state = FifoPolicy.PINNED;
               page.setPage(bufpool[tempfd.index]);
               //some BHR code may go here
               return;
@@ -194,7 +200,7 @@ public class BufMgr implements GlobalConst {
           tempfd.pincnt = 1;
           tempfd.dirty = false;
           pagemap.put(Integer.valueOf(pageno.pid), tempfd);
-          tempfd.state =Policy.PINNED;
+          tempfd.state = FifoPolicy.PINNED;
       	  replacer.pinPage(tempfd);
    
   }
@@ -226,7 +232,7 @@ public class BufMgr implements GlobalConst {
           tempfd.pincnt--;
           tempfd.dirty = dirty;
           if(tempfd.pincnt== 0)
-          tempfd.state = Policy.REFERENCED;
+          tempfd.state = FifoPolicy.REFERENCED;
           replacer.unpinPage(tempfd);
           return;
       }
@@ -314,8 +320,8 @@ public class BufMgr implements GlobalConst {
     
     
     //compute BHR1 and BHR2 
-    aggregateBHR = -1; //replce -1 with the formula   
-    pageLoadBHR = -1;  //replce -1 with the formula  
+    aggregateBHR = -1; //replce -1 with the formula
+    pageLoadBHR = -1;  //replce -1 with the formula
   
     System.out.print("Aggregate BHR (BHR1): ");
     System.out.printf("%9.5f\n", aggregateBHR);
