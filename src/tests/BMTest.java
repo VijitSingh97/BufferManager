@@ -29,13 +29,13 @@ class BMTest extends TestDriver {
     // run all the test cases
     System.out.println("\n" + "Running " + TEST_NAME + "...");
     boolean status = PASS;
-//    status &= bmt.test1();
+    status &= bmt.test1();
     bmt = new BMTest();
     bmt.create_minibase(); // makes 0-8 pages with no pin count
     status &= bmt.test2();
     bmt = new BMTest();
     bmt.create_minibase();
-//    status &= bmt.test3();
+    status &= bmt.test3();
 
     // display the final results
     System.out.println();

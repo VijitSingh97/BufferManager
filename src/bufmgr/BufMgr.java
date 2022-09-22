@@ -71,6 +71,10 @@ public class BufMgr implements GlobalConst {
       //initializing page map and replacer here. 
       pagemap = new HashMap<Integer, FrameDesc>(numbufs);
       replacer = new FifoPolicy(this);   // change Policy to replacement class name
+      totPageRequests = -1;
+      totPageHits = 0;
+      pageLoadHits = 0;
+      pageLoadRequests = -1;
   }
 
   /**
@@ -165,7 +169,12 @@ public class BufMgr implements GlobalConst {
         	  tempfd.pincnt++;
         	  tempfd.state = FifoPolicy.PINNED;
               page.setPage(bufpool[tempfd.index]);
-              //some BHR code may go here
+              if(pageno.pid > 8)
+              {
+                totPageHits += 1;
+                totPageRequests += 1;
+                pageLoadHits += 1;
+              }
               return;
           }
 	  }
@@ -201,6 +210,11 @@ public class BufMgr implements GlobalConst {
           tempfd.dirty = false;
           pagemap.put(Integer.valueOf(pageno.pid), tempfd);
           tempfd.state = FifoPolicy.PINNED;
+
+      if(pageno.pid > 8) {
+        pageLoadRequests += 1;
+        totPageRequests += 1;
+      }
       	  replacer.pinPage(tempfd);
    
   }
@@ -320,8 +334,8 @@ public class BufMgr implements GlobalConst {
     
     
     //compute BHR1 and BHR2 
-    aggregateBHR = -1; //replce -1 with the formula
-    pageLoadBHR = -1;  //replce -1 with the formula
+      aggregateBHR = (float)totPageHits/totPageRequests;
+      pageLoadBHR = (float)pageLoadHits/pageLoadRequests;
   
     System.out.print("Aggregate BHR (BHR1): ");
     System.out.printf("%9.5f\n", aggregateBHR);

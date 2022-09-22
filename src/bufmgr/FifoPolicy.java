@@ -125,9 +125,10 @@ class FifoPolicy extends  Replacer implements Policy {
 
    // pop the first index that can be replaced and return it
    for (int i =0; i < frameIndexList.size(); i++) {
-     if (frametab[frameIndexList.get(i)].state == REFERENCED) {
+     int frametabIndex = frameIndexList.get(i);
+     if (frametab[frametabIndex].state == REFERENCED) {
        frameIndexList.remove(i);
-       return i;
+       return frametabIndex;
      }
    }
 
